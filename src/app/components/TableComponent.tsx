@@ -43,7 +43,7 @@ const TableComponent = () => {
   };
 
   const handleAddClick = () => {
-    router.push('/create-person'); // Replace '/new-page' with your target path
+    router.push('/create-person');
   };
 
   return (

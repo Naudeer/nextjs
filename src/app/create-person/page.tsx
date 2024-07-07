@@ -30,7 +30,7 @@ const AddPerson: FC = () => {
 
       setName('');
       setAge('');
-      router.push('/'); // Redirect to the homepage or another page after saving
+      router.push('/');
     } catch (error) {
       console.error('Error:', error);
     }
