@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import Table from '@mui/material/Table';
@@ -15,6 +15,11 @@ import Box from '@mui/material/Box';
 import TablePagination from '@mui/material/TablePagination';
 import IconButton from '@mui/material/IconButton';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Typography from '@mui/material/Typography';
 
 interface RowData {
   id: number;
@@ -22,16 +27,35 @@ interface RowData {
   age: number;
 }
 
-const rows: RowData[] = Array.from({ length: 20 }, (_, index) => ({
-  id: index + 1,
-  name: `Person ${index + 1}`,
-  age: 20 + (index % 10),
-}));
-
 const TableComponent = () => {
+  const [rows, setRows] = useState<RowData[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false); // For confirmation dialog
+  const [selectedId, setSelectedId] = useState<number | null>(null); // ID of the item to delete
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchPeople = async () => {
+      try {
+        const response = await fetch('/api/people');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data: RowData[] = await response.json();
+        setRows(data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setError('Failed to fetch data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPeople();
+  }, []);
 
   const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     setPage(newPage);
@@ -46,50 +70,104 @@ const TableComponent = () => {
     router.push('/create-person');
   };
 
+  const handleEditClick = (id: number) => {
+    router.push(`/edit-person/${id}`);
+  };
+
+  const handleDeleteClick = (id: number) => {
+    setSelectedId(id);
+    setOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpen(false);
+    setSelectedId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (selectedId === null) return;
+
+    try {
+      const response = await fetch(`/api/person?id=${selectedId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete person');
+      }
+
+      setRows(rows.filter(row => row.id !== selectedId));
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Error deleting person:', error);
+      setError('Failed to delete person');
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Age</TableCell>
-            <TableCell align="right">Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
-            <TableRow key={row.id}>
-              <TableCell>{row.name}</TableCell>
-              <TableCell>{row.age}</TableCell>
-              <TableCell align="right">
-                <Box display="flex" gap={1} justifyContent="flex-end">
-                  <Button variant="contained" color="primary" onClick={() => alert(`Edit row with id: ${row.id}`)}>
-                    Edit
-                  </Button>
-                  <Button variant="outlined" color="error" onClick={() => alert(`Delete row with id: ${row.id}`)}>
-                    Delete
-                  </Button>
-                </Box>
-              </TableCell>
+    <>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Age</TableCell>
+              <TableCell align="right">Actions</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 20]}
-        component="div"
-        count={rows.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-      <Box display="flex" justifyContent="flex-end" padding="16px">
-        <IconButton color="primary" onClick={handleAddClick} sx={{ fontSize: 50 }}>
-          <AddCircleOutlineIcon fontSize="inherit" />
-        </IconButton>
-      </Box>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
+              <TableRow key={row.id}>
+                <TableCell>{row.name}</TableCell>
+                <TableCell>{row.age}</TableCell>
+                <TableCell align="right">
+                  <Box display="flex" gap={1} justifyContent="flex-end">
+                    <Button variant="contained" color="primary" onClick={() => handleEditClick(row.id)}>
+                      Edit
+                    </Button>
+                    <Button variant="outlined" color="error" onClick={() => handleDeleteClick(row.id)}>
+                      Delete
+                    </Button>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 20]}
+          component="div"
+          count={rows.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+        <Box display="flex" justifyContent="flex-end" padding="16px">
+          <IconButton color="primary" onClick={handleAddClick} sx={{ fontSize: 50 }}>
+            <AddCircleOutlineIcon fontSize="inherit" />
+          </IconButton>
+        </Box>
+      </TableContainer>
+
+      <Dialog open={open} onClose={handleCloseDialog} sx={{ '& .MuiDialog-paper': { marginTop: '-25vh' } }}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this person?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDelete} color="error">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 
