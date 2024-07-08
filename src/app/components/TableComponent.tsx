@@ -33,8 +33,8 @@ const TableComponent = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false); // For confirmation dialog
-  const [selectedId, setSelectedId] = useState<number | null>(null); // ID of the item to delete
+  const [open, setOpen] = useState(false); 
+  const [selectedId, setSelectedId] = useState<number | null>(null); 
   const router = useRouter();
 
   useEffect(() => {
@@ -45,7 +45,7 @@ const TableComponent = () => {
           throw new Error('Network response was not ok');
         }
         const data: RowData[] = await response.json();
-        setRows(data);
+        setRows(data.sort((a, b) => a.id - b.id)); 
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to fetch data');
@@ -93,13 +93,13 @@ const TableComponent = () => {
       const response = await fetch(`/api/person/${selectedId}`, {
         method: 'DELETE',
       });
-  
+
       if (!response.ok) {
         throw new Error('Failed to delete person');
       }
-  
-      setRows(rows.filter((row) => row.id !== selectedId));
-  
+
+      setRows((prevRows) => prevRows.filter((row) => row.id !== selectedId));
+
       handleCloseDialog();
     } catch (error) {
       console.error('Error deleting person:', error);
