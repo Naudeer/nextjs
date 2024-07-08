@@ -27,7 +27,7 @@ const EditPerson = ({ params }: { params: { id: string } }) => {
 
   const handleSubmit = async (name: string, age: number) => {
     try {
-      const response = await fetch(`/api/person/${params.id}`, {
+      const response = await fetch(`/api/person?id=${params.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

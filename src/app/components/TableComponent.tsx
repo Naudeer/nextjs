@@ -75,8 +75,12 @@ const TableComponent = () => {
   };
 
   const handleDeleteClick = (id: number) => {
-    setSelectedId(id);
-    setOpen(true);
+    if (id) {
+      setSelectedId(id);
+      setOpen(true);
+    } else {
+      console.error('Cannot delete person: Missing ID');
+    }
   };
 
   const handleCloseDialog = () => {
@@ -85,18 +89,17 @@ const TableComponent = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (selectedId === null) return;
-
     try {
-      const response = await fetch(`/api/person?id=${selectedId}`, {
+      const response = await fetch(`/api/person/${selectedId}`, {
         method: 'DELETE',
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to delete person');
       }
-
-      setRows(rows.filter(row => row.id !== selectedId));
+  
+      setRows(rows.filter((row) => row.id !== selectedId));
+  
       handleCloseDialog();
     } catch (error) {
       console.error('Error deleting person:', error);

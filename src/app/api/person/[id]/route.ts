@@ -4,8 +4,8 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export async function PATCH(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
+  const { pathname } = new URL(request.url);
+  const id = pathname.split('/').pop();
   const { name, age } = await request.json();
 
   if (!id || !name || !age) {
@@ -25,10 +25,9 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-
 export async function DELETE(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
+  const { pathname } = new URL(request.url);
+  const id = pathname.split('/').pop();
 
   if (!id) {
     return NextResponse.json({ error: 'ID is required' }, { status: 400 });
@@ -46,10 +45,9 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
+  const { pathname } = new URL(request.url);
+  const id = pathname.split('/').pop();
 
   if (!id) {
     return NextResponse.json({ error: 'ID is required' }, { status: 400 });
