@@ -13,13 +13,14 @@ import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import TablePagination from '@mui/material/TablePagination';
-import IconButton from '@mui/material/IconButton';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
+
+import IconButton from '@mui/material/IconButton';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 interface RowData {
   id: number;
@@ -33,19 +34,20 @@ const TableComponent = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false); 
-  const [selectedId, setSelectedId] = useState<number | null>(null); 
+  const [open, setOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const fetchPeople = async () => {
       try {
-        const response = await fetch('/api/people');
+        console.log(process.env)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/people`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data: RowData[] = await response.json();
-        setRows(data.sort((a, b) => a.id - b.id)); 
+        setRows(data.sort((a, b) => a.id - b.id));
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to fetch data');
@@ -90,7 +92,7 @@ const TableComponent = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      const response = await fetch(`/api/person/${selectedId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/person/${selectedId}`, {
         method: 'DELETE',
       });
 

@@ -11,7 +11,7 @@ const EditPerson = ({ params }: { params: { id: string } }) => {
   useEffect(() => {
     const fetchPerson = async () => {
       try {
-        const response = await fetch(`/api/person/${params.id}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/person/${params.id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch person');
         }
@@ -27,7 +27,7 @@ const EditPerson = ({ params }: { params: { id: string } }) => {
 
   const handleSubmit = async (name: string, age: number) => {
     try {
-      const response = await fetch(`/api/person/${params.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/person/${params.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
