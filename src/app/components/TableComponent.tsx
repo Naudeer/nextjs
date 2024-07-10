@@ -18,7 +18,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
-
 import IconButton from '@mui/material/IconButton';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
@@ -41,7 +40,6 @@ const TableComponent = () => {
   useEffect(() => {
     const fetchPeople = async () => {
       try {
-        console.log(process.env)
         const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/people`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -59,13 +57,28 @@ const TableComponent = () => {
     fetchPeople();
   }, []);
 
+  useEffect(() => {
+    const savedPage = localStorage.getItem('page');
+    const savedRowsPerPage = localStorage.getItem('rowsPerPage');
+    if (savedPage) {
+      setPage(parseInt(savedPage, 10));
+    }
+    if (savedRowsPerPage) {
+      setRowsPerPage(parseInt(savedRowsPerPage, 10));
+    }
+  }, []);
+
   const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     setPage(newPage);
+    localStorage.setItem('page', newPage.toString());
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
+    setPage(0); // Reset to first page
+    localStorage.setItem('rowsPerPage', newRowsPerPage.toString());
+    localStorage.setItem('page', '0');
   };
 
   const handleAddClick = () => {
